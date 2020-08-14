@@ -21,5 +21,12 @@ namespace DPRN3_CASG
         {
 
         }
+
+        private async void button1_Click(object sender, EventArgs e)
+        {
+            DataBase bd = new DataBase();
+            string ok = await bd.Get_Lista();
+            Console.WriteLine(ok);
+        }
     }
 }
