@@ -1,12 +1,17 @@
-﻿using System;
+﻿using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing;
+using System.Globalization;
 
 namespace DPRN3_CASG
 {
@@ -30,7 +35,6 @@ namespace DPRN3_CASG
                 textBox3.Text,
                 comboBox1.SelectedItem.GetType().GetProperty("Id").GetValue(comboBox1.SelectedItem, null)
                 );
-
         }
 
         private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
@@ -40,15 +44,13 @@ namespace DPRN3_CASG
             {
                 e.Handled = true;
             }
-
-            // only allow one decimal point
             if ((e.KeyChar == '.') && ((sender as TextBox).Text.IndexOf('.') > -1))
             {
                 e.Handled = true;
             }
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        private async void button5_Click(object sender, EventArgs e)
         {
             int listaId = db.Post_Lista();
             _ProductoLista producto = new _ProductoLista();
@@ -62,13 +64,17 @@ namespace DPRN3_CASG
                 producto.EsUrgente          = Boolean.Parse(dataGridView2.Rows[i].Cells[3].Value.ToString());
                 producto.AceptaSustitutos   = Boolean.Parse(dataGridView2.Rows[i].Cells[4].Value.ToString());
 
-                var ok = db.Post_ProductoLista(producto);
+                var ok = await db.Post_ProductoLista(producto);
+
+                if (ok)
+                {
+                    MessageBox.Show("Operación exitosa!");
+                }
+                else
+                {
+                    MessageBox.Show("Ha ocurrido un error consulte a su administrador.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }
             }
-        }
-
-        private void tabControl1_DoubleClick(object sender, EventArgs e)
-        {
-
         }
 
         private void tabControl1_Click(object sender, EventArgs e)
@@ -112,9 +118,96 @@ namespace DPRN3_CASG
                 {
                     dataGridView3.Rows.Clear();
                     dataGridView3.Refresh();
-                    MessageBox.Show("La lista seleccionada no cuenta con productos.");
+                    MessageBox.Show("La lista seleccionada no cuenta con productos.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
             }          
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var fecha = dataGridView1.CurrentRow.Cells[1].Value.ToString();
+            DateTime oDate = Convert.ToDateTime(fecha);
+            if (dataGridView3.Rows.Count > 0)
+            {
+                SaveFileDialog sfd = new SaveFileDialog();
+                sfd.Filter = "PDF (*.pdf)|*.pdf";
+                sfd.FileName = $"lista_{oDate.Day}_{oDate.Month}_{oDate.Year}.pdf";
+                bool fileError = false;
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    if (File.Exists(sfd.FileName))
+                    {
+                        try
+                        {
+                            File.Delete(sfd.FileName);
+                        }
+                        catch (IOException ex)
+                        {
+                            fileError = true;
+                            MessageBox.Show("Ha ocurrido un error al intentar guardar." + ex.Message);
+                        }
+                    }
+                    if (!fileError)
+                    {
+                        try
+                        {
+                            PdfPTable pdfTable = new PdfPTable(dataGridView3.Columns.Count);
+                            pdfTable.DefaultCell.Padding = 3;
+                            pdfTable.WidthPercentage = 100;
+                            pdfTable.HorizontalAlignment = Element.ALIGN_LEFT;
+
+                            foreach (DataGridViewColumn column in dataGridView3.Columns)
+                            {
+                                PdfPCell cell = new PdfPCell(new Phrase(column.HeaderText));
+                                pdfTable.AddCell(cell);
+                            }
+
+                            foreach (DataGridViewRow row in dataGridView3.Rows)
+                            {
+                                foreach (DataGridViewCell cell in row.Cells)
+                                {
+                                    pdfTable.AddCell(cell.Value.ToString());
+                                }
+                            }
+
+                            using (FileStream stream = new FileStream(sfd.FileName, FileMode.Create))
+                            {
+                                Document pdfDoc = new Document(PageSize.A4, 10f, 20f, 20f, 10f);
+                                PdfWriter.GetInstance(pdfDoc, stream);
+                                pdfDoc.Open();
+                                pdfDoc.Add(pdfTable);
+                                pdfDoc.Close();
+                                stream.Close();
+                            }
+
+                            MessageBox.Show("Archivo generado correctamente!", "Info");
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Error :" + ex.Message);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("No exite información para imprimir", "Info");
+            }
+        }
+        Bitmap bm;
+        private void button7_Click(object sender, EventArgs e)
+        {
+            bm = new Bitmap(this.dataGridView3.Width, this.dataGridView3.Height);
+            dataGridView3.DrawToBitmap(bm, new System.Drawing.Rectangle(0, 0, this.dataGridView3.Width, this.dataGridView3.Height));
+            printPreviewDialog1.Document = printDocument1;
+            printPreviewDialog1.PrintPreviewControl.Zoom = 1;
+            printPreviewDialog1.ShowDialog();
+            
+        }
+
+        private void printDocument1_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
+        {
+            e.Graphics.DrawImage(bm, 0, 0);
         }
     }
 }
