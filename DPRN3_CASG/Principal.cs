@@ -19,12 +19,6 @@ namespace DPRN3_CASG
             this.comboBox1.DataSource = db.Get_CatalogoUnidades();
         }
 
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-            
-        }
-
         private void button1_Click(object sender, EventArgs e)
         {
             dataGridView2.Rows.Add(
@@ -36,11 +30,6 @@ namespace DPRN3_CASG
                 textBox3.Text,
                 comboBox1.SelectedItem.GetType().GetProperty("Id").GetValue(comboBox1.SelectedItem, null)
                 );
-
-        }
-
-        private void dataGridView2_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
 
         }
 
@@ -68,7 +57,7 @@ namespace DPRN3_CASG
                 producto.NombreProducto     = dataGridView2.Rows[i].Cells[0].Value.ToString();
                 producto.ListaId            = listaId;
                 producto.IdUnidad           = Int32.Parse(dataGridView2.Rows[i].Cells[6].Value.ToString());
-                producto.Cantidad           = Int32.Parse(dataGridView2.Rows[i].Cells[1].Value.ToString());
+                producto.Cantidad           = Double.Parse(dataGridView2.Rows[i].Cells[1].Value.ToString());
                 producto.Notas              = dataGridView2.Rows[i].Cells[5].Value.ToString();
                 producto.EsUrgente          = Boolean.Parse(dataGridView2.Rows[i].Cells[3].Value.ToString());
                 producto.AceptaSustitutos   = Boolean.Parse(dataGridView2.Rows[i].Cells[4].Value.ToString());
@@ -97,7 +86,35 @@ namespace DPRN3_CASG
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            //int listaId = Int32.Parse(e.RowIndex.GetType().GetProperty("ListaId").GetValue(e.RowIndex, null).ToString());
+            dataGridView3.Rows.Clear();
+            dataGridView3.Refresh();
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = this.dataGridView1.Rows[e.RowIndex];
+
+                int listaId = Int32.Parse(row.Cells["Lista"].Value.ToString());
+
+                List<_ProductoLista> detalle = db.Get_DetalleLista(listaId);
+
+                if(detalle.Count > 0)
+                {
+                    for (int i = 0; i < detalle.Count; i++)
+                    {
+                        dataGridView3.Rows.Add();
+                        dataGridView3.Rows[i].Cells[0].Value = detalle[i].NombreProducto;
+                        dataGridView3.Rows[i].Cells[1].Value = detalle[i].Cantidad;
+                        dataGridView3.Rows[i].Cells[2].Value = detalle[i].Unidad;
+                        dataGridView3.Rows[i].Cells[3].Value = detalle[i].EsUrgente;
+                        dataGridView3.Rows[i].Cells[4].Value = detalle[i].AceptaSustitutos;
+                        dataGridView3.Rows[i].Cells[5].Value = detalle[i].Notas;
+                    }
+                } else
+                {
+                    dataGridView3.Rows.Clear();
+                    dataGridView3.Refresh();
+                    MessageBox.Show("La lista seleccionada no cuenta con productos.");
+                }
+            }          
         }
     }
 }

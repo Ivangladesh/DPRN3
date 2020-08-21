@@ -117,7 +117,7 @@ namespace DPRN3_CASG
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter("@ListaId", SqlDbType.Int)).Value               = oProducto.ListaId;
                         cmd.Parameters.Add(new SqlParameter("@NombreProducto", SqlDbType.NVarChar)).Value   = oProducto.NombreProducto;
-                        cmd.Parameters.Add(new SqlParameter("@Cantidad", SqlDbType.Decimal)).Value          = oProducto.Cantidad;
+                        cmd.Parameters.Add(new SqlParameter("@Cantidad", SqlDbType.Float)).Value            = oProducto.Cantidad;
                         cmd.Parameters.Add(new SqlParameter("@IdUnidad", SqlDbType.Int)).Value              = oProducto.IdUnidad;
                         cmd.Parameters.Add(new SqlParameter("@Notas", SqlDbType.NVarChar)).Value            = oProducto.Notas;
                         cmd.Parameters.Add(new SqlParameter("@EsUrgente", SqlDbType.Bit)).Value             = oProducto.EsUrgente;
@@ -144,7 +144,7 @@ namespace DPRN3_CASG
                 using (SqlConnection cn = new SqlConnection(conn))
                 {
                     cn.Open();
-                    using (SqlCommand cmd = new SqlCommand("dbo.spObtenerLista", cn))
+                    using (SqlCommand cmd = new SqlCommand("dbo.spObtenerDetalleLista", cn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter("@ListaId", SqlDbType.Int)).Value = listaId;
@@ -154,9 +154,12 @@ namespace DPRN3_CASG
                             {
                                 lista.Add(new _ProductoLista
                                 {
-                                    ListaId = reader.GetInt32(0),
-                                    Fecha = reader.GetDateTime(1),
-                                    Activo = reader.GetBoolean(2)
+                                    NombreProducto      = reader.GetString(0),
+                                    Cantidad            = reader.GetDouble(1),
+                                    Unidad              = reader.GetString(2),
+                                    EsUrgente           = reader.GetBoolean(3),
+                                    AceptaSustitutos    = reader.GetBoolean(4),
+                                    Notas               = reader.GetString(5),
                                 });
                             }
                         }
