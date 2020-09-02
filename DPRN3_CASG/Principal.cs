@@ -2,16 +2,9 @@
 using iTextSharp.text.pdf;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Drawing;
-using System.Globalization;
 
 namespace DPRN3_CASG
 {
@@ -21,6 +14,7 @@ namespace DPRN3_CASG
         public Principal()
         {
             InitializeComponent();
+            comboBox1.Text = "Seleccione...";
             this.comboBox1.DataSource = db.Get_CatalogoUnidades();
         }
 
@@ -35,6 +29,8 @@ namespace DPRN3_CASG
                 textBox3.Text,
                 comboBox1.SelectedItem.GetType().GetProperty("Id").GetValue(comboBox1.SelectedItem, null)
                 );
+
+            ReiniciarControles(groupBox1);
         }
 
         private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
@@ -53,8 +49,9 @@ namespace DPRN3_CASG
         private async void button5_Click(object sender, EventArgs e)
         {
             int listaId = db.Post_Lista();
+            int cantidadRegistros = dataGridView2.Rows.Count;
             _ProductoLista producto = new _ProductoLista();
-            for (int i = 0; i < dataGridView2.Rows.Count - 1; i++)
+            for (int i = 0; i < cantidadRegistros; i++)
             {
                 producto.NombreProducto     = dataGridView2.Rows[i].Cells[0].Value.ToString();
                 producto.ListaId            = listaId;
@@ -64,30 +61,27 @@ namespace DPRN3_CASG
                 producto.EsUrgente          = Boolean.Parse(dataGridView2.Rows[i].Cells[3].Value.ToString());
                 producto.AceptaSustitutos   = Boolean.Parse(dataGridView2.Rows[i].Cells[4].Value.ToString());
 
-                var ok = await db.Post_ProductoLista(producto);
+                bool ok = await db.Post_ProductoLista(producto);
 
                 if (ok)
                 {
-                    MessageBox.Show("Operación exitosa!");
+                    cantidadRegistros--;
                 }
-                else
-                {
-                    MessageBox.Show("Ha ocurrido un error consulte a su administrador.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                }
+            }
+            if (cantidadRegistros == 0)
+            {
+                MessageBox.Show("Operación exitosa!");
+                ReiniciarControles(groupBox1);
+            }
+            else
+            {
+                MessageBox.Show("Ha ocurrido un error consulte a su administrador.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
         private void tabControl1_Click(object sender, EventArgs e)
         {
-            var historialLista = db.Get_HistorialLista();
-
-            for (int i = 0; i < historialLista.Count; i++)
-            {
-                dataGridView1.Rows.Add();
-                dataGridView1.Rows[i].Cells[0].Value = historialLista[i].ListaId;
-                dataGridView1.Rows[i].Cells[1].Value = historialLista[i].Fecha;
-                dataGridView1.Rows[i].Cells[2].Value = historialLista[i].Activo;
-            }        
+            ObtenerHIstorialLista();
         }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -208,6 +202,87 @@ namespace DPRN3_CASG
         private void printDocument1_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
         {
             e.Graphics.DrawImage(bm, 0, 0);
+        }
+
+        private async void button4_Click(object sender, EventArgs e)
+        {
+            DataGridViewRow row = this.dataGridView1.Rows[dataGridView1.CurrentCell.RowIndex];
+
+            int listaId = Int32.Parse(row.Cells["Lista"].Value.ToString());
+
+            var ok = await db.Delete_Lista(1);
+
+            if (ok)
+            {
+                ObtenerHIstorialLista();
+                MessageBox.Show("Operación exitosa!");
+            }
+            else
+            {
+                MessageBox.Show("Ha ocurrido un error consulte a su administrador.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        private void ObtenerHIstorialLista()
+        {
+            dataGridView1.Rows.Clear();
+            dataGridView1.Refresh();
+
+            var historialLista = db.Get_HistorialLista();
+
+            for (int i = 0; i < historialLista.Count; i++)
+            {
+                dataGridView1.Rows.Add();
+                dataGridView1.Rows[i].Cells[0].Value = historialLista[i].ListaId;
+                dataGridView1.Rows[i].Cells[1].Value = historialLista[i].Fecha;
+                dataGridView1.Rows[i].Cells[2].Value = historialLista[i].Activo;
+            }
+        }
+
+        public static void ReiniciarControles(Control form)
+        {
+            foreach (Control control in form.Controls)
+            {
+                if (control is TextBox)
+                {
+                    TextBox textBox = (TextBox)control;
+                    textBox.Text = null;
+                }
+
+                if (control is ComboBox)
+                {
+                    ComboBox comboBox = (ComboBox)control;
+                    if (comboBox.Items.Count > 0)
+                        comboBox.SelectedIndex = 0;
+                }
+
+                if (control is CheckBox)
+                {
+                    CheckBox checkBox = (CheckBox)control;
+                    checkBox.Checked = false;
+                }
+
+                if (control is ListBox)
+                {
+                    ListBox listBox = (ListBox)control;
+                    listBox.ClearSelected();
+                }
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            ReiniciarControles(groupBox1);
+        }
+
+        private void ObtenerUnidades()
+        {
+
+
+            foreach (DataRow dr1 in ds.Tables[0].Rows)
+            {
+                comboBox1.Items.Add(dr1["EmpName"].ToString());
+            }
         }
     }
 }

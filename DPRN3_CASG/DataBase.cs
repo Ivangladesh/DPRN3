@@ -172,5 +172,31 @@ namespace DPRN3_CASG
             }
             return lista;
         }
+
+        public async Task<bool> Delete_Lista(int listaId)
+        {
+            bool ok = false;
+            try
+            {
+                using (SqlConnection cn = new SqlConnection(conn))
+                {
+                    cn.Open();
+                    using (SqlCommand cmd = new SqlCommand("dbo.spInsertarProductoLista", cn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add(new SqlParameter("@ListaId", SqlDbType.Int)).Value = listaId;
+                        var paramReturn = cmd.Parameters.Add("@ReturnVal", SqlDbType.Int);
+                        paramReturn.Direction = ParameterDirection.ReturnValue;
+                        await cmd.ExecuteNonQueryAsync();
+                        ok = Convert.ToBoolean(paramReturn.Value);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return ok;
+        }
     }
 }
