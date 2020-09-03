@@ -132,7 +132,7 @@ namespace DPRN3_CASG
             return ok;
         }
 
-        public List<_ProductoLista> Get_DetalleLista(int listaId)
+        public async Task<List<_ProductoLista>> Get_DetalleLista(int listaId)
         {
             List<_ProductoLista> lista = new List<_ProductoLista>();
             try
@@ -144,7 +144,7 @@ namespace DPRN3_CASG
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter("@ListaId", SqlDbType.Int)).Value = listaId;
-                        using (var reader = cmd.ExecuteReader())
+                        using (var reader = await cmd.ExecuteReaderAsync())
                         {
                             while (reader.Read())
                             {
@@ -195,7 +195,7 @@ namespace DPRN3_CASG
             return ok;
         }
 
-        public async Task<int> Update_EstadoLista(int listaId, bool estado)
+        public async Task<bool> Update_EstadoLista(int listaId, bool estado)
         {
             bool ok = false;
             try

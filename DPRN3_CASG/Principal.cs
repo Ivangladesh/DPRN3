@@ -95,37 +95,42 @@ namespace DPRN3_CASG
             ObtenerHIstorialLista();
         }
 
-        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             dataGridView3.Rows.Clear();
             dataGridView3.Refresh();
-            if (e.RowIndex >= 0)
+            if(e.RowIndex >= 0)
             {
-                DataGridViewRow row = this.dataGridView1.Rows[e.RowIndex];
-
-                int listaId = Int32.Parse(row.Cells["Lista"].Value.ToString());
-
-                List<_ProductoLista> detalle = db.Get_DetalleLista(listaId);
-
-                if(detalle.Count > 0)
+                if (e.ColumnIndex == 0 || e.ColumnIndex == 1)
                 {
-                    for (int i = 0; i < detalle.Count; i++)
+                    DataGridViewRow row = this.dataGridView1.Rows[e.RowIndex];
+
+                    int listaId = Int32.Parse(row.Cells["Lista"].Value.ToString());
+
+                    List<_ProductoLista> detalle = await db.Get_DetalleLista(listaId);
+
+                    if (detalle.Count > 0)
                     {
-                        dataGridView3.Rows.Add();
-                        dataGridView3.Rows[i].Cells[0].Value = detalle[i].NombreProducto;
-                        dataGridView3.Rows[i].Cells[1].Value = detalle[i].Cantidad;
-                        dataGridView3.Rows[i].Cells[2].Value = detalle[i].Unidad;
-                        dataGridView3.Rows[i].Cells[3].Value = detalle[i].EsUrgente;
-                        dataGridView3.Rows[i].Cells[4].Value = detalle[i].AceptaSustitutos;
-                        dataGridView3.Rows[i].Cells[5].Value = detalle[i].Notas;
+                        for (int i = 0; i < detalle.Count; i++)
+                        {
+                            dataGridView3.Rows.Add();
+                            dataGridView3.Rows[i].Cells[0].Value = detalle[i].NombreProducto;
+                            dataGridView3.Rows[i].Cells[1].Value = detalle[i].Cantidad;
+                            dataGridView3.Rows[i].Cells[2].Value = detalle[i].Unidad;
+                            dataGridView3.Rows[i].Cells[3].Value = detalle[i].EsUrgente;
+                            dataGridView3.Rows[i].Cells[4].Value = detalle[i].AceptaSustitutos;
+                            dataGridView3.Rows[i].Cells[5].Value = detalle[i].Notas;
+                        }
                     }
-                } else
-                {
-                    dataGridView3.Rows.Clear();
-                    dataGridView3.Refresh();
-                    MessageBox.Show("La lista seleccionada no cuenta con productos.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    else
+                    {
+                        dataGridView3.Rows.Clear();
+                        dataGridView3.Refresh();
+                        MessageBox.Show("La lista seleccionada no cuenta con productos.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
                 }
-            }          
+            }
+           
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -288,6 +293,25 @@ namespace DPRN3_CASG
             comboBox1.DataSource = new BindingSource(lista, null);
             comboBox1.DisplayMember = "Value";
             comboBox1.ValueMember = "Key";
+        }
+
+        private async void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 2)
+            {
+                DataGridViewRow row = this.dataGridView1.Rows[e.RowIndex];
+                int listaId = Int32.Parse(row.Cells["Lista"].Value.ToString());
+                bool estado = Boolean.Parse(row.Cells["Estado"].Value.ToString());
+                bool ok = await db.Update_EstadoLista(listaId, estado);
+                if (ok)
+                {
+                    MessageBox.Show("Operación exitosa!");
+                }
+                else
+                {
+                    MessageBox.Show("Ha ocurrido un error consulte a su administrador.", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }
+            }
         }
     }
 }
