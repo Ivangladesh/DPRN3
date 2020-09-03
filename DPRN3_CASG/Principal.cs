@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace DPRN3_CASG
@@ -14,23 +15,31 @@ namespace DPRN3_CASG
         public Principal()
         {
             InitializeComponent();
-            comboBox1.Text = "Seleccione...";
-            this.comboBox1.DataSource = db.Get_CatalogoUnidades();
+            ObtenerUnidades();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            dataGridView2.Rows.Add(
-                textBox1.Text, 
-                textBox2.Text,
-                comboBox1.SelectedItem.GetType().GetProperty("Unidad").GetValue(comboBox1.SelectedItem, null), 
-                checkBox2.Checked, 
-                checkBox1.Checked, 
-                textBox3.Text,
-                comboBox1.SelectedItem.GetType().GetProperty("Id").GetValue(comboBox1.SelectedItem, null)
-                );
+            if (textBox1.Text == "" || textBox2.Text == "" || ((KeyValuePair<int, string>)comboBox1.SelectedItem).Key == 0)
+            {
+                MessageBox.Show("Agregue los campos necesarios", ":(", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+            else
+            {
+                dataGridView2.Rows.Add(
+                    textBox1.Text,
+                    textBox2.Text,
+                    ((KeyValuePair<int, string>)comboBox1.SelectedItem).Value,
+                    checkBox2.Checked,
+                    checkBox1.Checked,
+                    textBox3.Text,
+                    ((KeyValuePair<int, string>)comboBox1.SelectedItem).Key
+                    );
 
-            ReiniciarControles(groupBox1);
+                ReiniciarControles(groupBox1);
+            }
+
+
         }
 
         private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
@@ -51,7 +60,7 @@ namespace DPRN3_CASG
             int listaId = db.Post_Lista();
             int cantidadRegistros = dataGridView2.Rows.Count;
             _ProductoLista producto = new _ProductoLista();
-            for (int i = 0; i < cantidadRegistros; i++)
+            for (int i = 0; i < dataGridView2.Rows.Count; i++)
             {
                 producto.NombreProducto     = dataGridView2.Rows[i].Cells[0].Value.ToString();
                 producto.ListaId            = listaId;
@@ -71,6 +80,8 @@ namespace DPRN3_CASG
             if (cantidadRegistros == 0)
             {
                 MessageBox.Show("Operación exitosa!");
+                dataGridView2.Rows.Clear();
+                dataGridView2.Refresh();
                 ReiniciarControles(groupBox1);
             }
             else
@@ -248,24 +259,16 @@ namespace DPRN3_CASG
                     TextBox textBox = (TextBox)control;
                     textBox.Text = null;
                 }
-
                 if (control is ComboBox)
                 {
                     ComboBox comboBox = (ComboBox)control;
                     if (comboBox.Items.Count > 0)
                         comboBox.SelectedIndex = 0;
                 }
-
                 if (control is CheckBox)
                 {
                     CheckBox checkBox = (CheckBox)control;
                     checkBox.Checked = false;
-                }
-
-                if (control is ListBox)
-                {
-                    ListBox listBox = (ListBox)control;
-                    listBox.ClearSelected();
                 }
             }
         }
@@ -277,12 +280,14 @@ namespace DPRN3_CASG
 
         private void ObtenerUnidades()
         {
+            Dictionary<int, string> lista = db.Get_CatalogoUnidades();
+            lista = (new Dictionary<int, string> { { 0, "Seleccione" } }).Concat(lista).ToDictionary(k => k.Key, v => v.Value);
+            comboBox1.Items.Insert(0, "Seleccione");
+            comboBox1.SelectedIndex = 0;
 
-
-            foreach (DataRow dr1 in ds.Tables[0].Rows)
-            {
-                comboBox1.Items.Add(dr1["EmpName"].ToString());
-            }
+            comboBox1.DataSource = new BindingSource(lista, null);
+            comboBox1.DisplayMember = "Value";
+            comboBox1.ValueMember = "Key";
         }
     }
 }

@@ -47,9 +47,9 @@ namespace DPRN3_CASG
             return lista;
         }
 
-        public List<_CatalogoUnidades> Get_CatalogoUnidades()
+        public Dictionary<int, string> Get_CatalogoUnidades()
         {
-            List<_CatalogoUnidades> unidades = new List<_CatalogoUnidades>();
+            Dictionary<int, string> unidades = new Dictionary<int, string>();
             try
             {
                 using (SqlConnection cn = new SqlConnection(conn))
@@ -62,11 +62,7 @@ namespace DPRN3_CASG
                         {
                             while (reader.Read())
                             {
-                                unidades.Add( new _CatalogoUnidades
-                                {
-                                    Id = reader.GetInt32(0),
-                                    Unidad = reader.GetString(1)
-                                });
+                                unidades.Add(reader.GetInt32(0), reader.GetString(1));
                             }
                         }
                     }
@@ -185,6 +181,33 @@ namespace DPRN3_CASG
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter("@ListaId", SqlDbType.Int)).Value = listaId;
+                        var paramReturn = cmd.Parameters.Add("@ReturnVal", SqlDbType.Int);
+                        paramReturn.Direction = ParameterDirection.ReturnValue;
+                        await cmd.ExecuteNonQueryAsync();
+                        ok = Convert.ToBoolean(paramReturn.Value);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return ok;
+        }
+
+        public async Task<int> Update_EstadoLista(int listaId, bool estado)
+        {
+            bool ok = false;
+            try
+            {
+                using (SqlConnection cn = new SqlConnection(conn))
+                {
+                    cn.Open();
+                    using (SqlCommand cmd = new SqlCommand("dbo.spActualizarEstadoLista", cn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add(new SqlParameter("@ListaId", SqlDbType.Int)).Value = listaId;
+                        cmd.Parameters.Add(new SqlParameter("@Activo", SqlDbType.Int)).Value = estado;
                         var paramReturn = cmd.Parameters.Add("@ReturnVal", SqlDbType.Int);
                         paramReturn.Direction = ParameterDirection.ReturnValue;
                         await cmd.ExecuteNonQueryAsync();

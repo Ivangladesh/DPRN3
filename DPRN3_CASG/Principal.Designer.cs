@@ -275,14 +275,11 @@
             // 
             // comboBox1
             // 
-            this.comboBox1.DataSource = this.catalogoUnidadesBindingSource;
-            this.comboBox1.DisplayMember = "Unidad";
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Location = new System.Drawing.Point(91, 90);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(80, 21);
             this.comboBox1.TabIndex = 11;
-            this.comboBox1.ValueMember = "Id";
             // 
             // catalogoUnidadesBindingSource
             // 
