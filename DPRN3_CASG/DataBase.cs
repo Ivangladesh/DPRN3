@@ -12,7 +12,7 @@ namespace DPRN3_CASG
 {
     class DataBase
     {
-        private string conn = ConfigurationManager.ConnectionStrings["connectionstringDPRN3"].ToString();
+        private readonly string conn = ConfigurationManager.ConnectionStrings["connectionstringDPRN3"].ToString();
 
         public List<_ProductoLista> Get_HistorialLista()
         {

@@ -11,14 +11,14 @@ namespace DPRN3_CASG
 {
     public partial class Principal : Form
     {
-        DataBase db = new DataBase();
+        readonly DataBase db = new DataBase();
         public Principal()
         {
             InitializeComponent();
             ObtenerUnidades();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void Button1_Click(object sender, EventArgs e)
         {
             if (textBox1.Text == "" || textBox2.Text == "" || ((KeyValuePair<int, string>)comboBox1.SelectedItem).Key == 0)
             {
@@ -42,7 +42,7 @@ namespace DPRN3_CASG
 
         }
 
-        private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
+        private void TextBox2_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) &&
                 (e.KeyChar != '.'))
@@ -55,7 +55,7 @@ namespace DPRN3_CASG
             }
         }
 
-        private async void button5_Click(object sender, EventArgs e)
+        private async void Button5_Click(object sender, EventArgs e)
         {
             int listaId = db.Post_Lista();
             int cantidadRegistros = dataGridView2.Rows.Count;
@@ -90,12 +90,12 @@ namespace DPRN3_CASG
             }
         }
 
-        private void tabControl1_Click(object sender, EventArgs e)
+        private void TabControl1_Click(object sender, EventArgs e)
         {
             ObtenerHIstorialLista();
         }
 
-        private async void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void DataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             dataGridView3.Rows.Clear();
             dataGridView3.Refresh();
@@ -133,15 +133,17 @@ namespace DPRN3_CASG
            
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void Button3_Click(object sender, EventArgs e)
         {
             var fecha = dataGridView1.CurrentRow.Cells[1].Value.ToString();
             DateTime oDate = Convert.ToDateTime(fecha);
             if (dataGridView3.Rows.Count > 0)
             {
-                SaveFileDialog sfd = new SaveFileDialog();
-                sfd.Filter = "PDF (*.pdf)|*.pdf";
-                sfd.FileName = $"lista_{oDate.Day}_{oDate.Month}_{oDate.Year}.pdf";
+                SaveFileDialog sfd = new SaveFileDialog
+                {
+                    Filter = "PDF (*.pdf)|*.pdf",
+                    FileName = $"lista_{oDate.Day}_{oDate.Month}_{oDate.Year}.pdf"
+                };
                 bool fileError = false;
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
@@ -205,7 +207,7 @@ namespace DPRN3_CASG
             }
         }
         Bitmap bm;
-        private void button7_Click(object sender, EventArgs e)
+        private void Button7_Click(object sender, EventArgs e)
         {
             bm = new Bitmap(this.dataGridView3.Width, this.dataGridView3.Height);
             dataGridView3.DrawToBitmap(bm, new System.Drawing.Rectangle(0, 0, this.dataGridView3.Width, this.dataGridView3.Height));
@@ -215,18 +217,18 @@ namespace DPRN3_CASG
             
         }
 
-        private void printDocument1_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
+        private void PrintDocument1_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
         {
             e.Graphics.DrawImage(bm, 0, 0);
         }
 
-        private async void button4_Click(object sender, EventArgs e)
+        private async void Button4_Click(object sender, EventArgs e)
         {
             DataGridViewRow row = this.dataGridView1.Rows[dataGridView1.CurrentCell.RowIndex];
 
             int listaId = Int32.Parse(row.Cells["Lista"].Value.ToString());
 
-            var ok = await db.Delete_Lista(1);
+            var ok = await db.Delete_Lista(listaId);
 
             if (ok)
             {
@@ -259,26 +261,23 @@ namespace DPRN3_CASG
         {
             foreach (Control control in form.Controls)
             {
-                if (control is TextBox)
+                if (control is TextBox textBox)
                 {
-                    TextBox textBox = (TextBox)control;
                     textBox.Text = null;
                 }
-                if (control is ComboBox)
+                if (control is ComboBox comboBox)
                 {
-                    ComboBox comboBox = (ComboBox)control;
                     if (comboBox.Items.Count > 0)
                         comboBox.SelectedIndex = 0;
                 }
-                if (control is CheckBox)
+                if (control is CheckBox checkBox)
                 {
-                    CheckBox checkBox = (CheckBox)control;
                     checkBox.Checked = false;
                 }
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void Button2_Click(object sender, EventArgs e)
         {
             ReiniciarControles(groupBox1);
         }
@@ -295,7 +294,7 @@ namespace DPRN3_CASG
             comboBox1.ValueMember = "Key";
         }
 
-        private async void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        private async void DataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == 2)
             {
